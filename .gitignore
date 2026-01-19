@@ -5,3 +5,4 @@ frontend/node_modules/
 .env.local
 dist/
 build/
+Afia-old/
