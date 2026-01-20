@@ -1,18 +1,25 @@
-# backend/main.py
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
+from app.db.session import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup - test database connection
     print("Starting up...")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(lambda _: print("✅ Database connected successfully!"))
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+    
     yield
+    
     # Shutdown
     print("Shutting down...")
+    await engine.dispose()
 
 app = FastAPI(
     title="Marketplace API",
@@ -24,7 +31,7 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,11 +40,59 @@ app.add_middleware(
 # Root endpoints
 @app.get("/")
 async def root():
-    return {"message": "Marketplace API is running", "version": "1.0.0"}
+    return {
+        "message": "Marketplace API is running",
+        "version": "1.0.0",
+        "environment": settings.ENVIRONMENT
+    }
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+
+# backend/main.py
+
+
+# from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
+# from contextlib import asynccontextmanager
+
+# from app.core.config import settings
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # Startup
+#     print("Starting up...")
+#     yield
+#     # Shutdown
+#     print("Shutting down...")
+
+# app = FastAPI(
+#     title="Marketplace API",
+#     version="1.0.0",
+#     lifespan=lifespan,
+#     docs_url="/api/docs"
+# )
+
+# # CORS Middleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # Root endpoints
+# @app.get("/")
+# async def root():
+#     return {"message": "Marketplace API is running", "version": "1.0.0"}
+
+# @app.get("/health")
+# async def health_check():
+#     return {"status": "healthy"}
 
 # Import and include routers (we'll uncomment these step by step)
 # Uncomment these lines once we fix the imports
