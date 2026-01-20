@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 import redis.asyncio as redis
 from contextlib import asynccontextmanager
 
-from app.api.v1 import auth, products, admin, users
+from app.api.v1 import auth, products, admin
 from app.core.config import settings
 from app.core.security import SecurityHeadersMiddleware
 from app.db.session import engine, Base
@@ -60,7 +60,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(products.router, prefix="/api/v1/products", tags=["Products"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+# app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+
+
 
 @app.get("/health")
 async def health_check():

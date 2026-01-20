@@ -14,6 +14,6 @@ class AdminLog(Base):
     action = Column(String(100), nullable=False)
     target_type = Column(String(50))
     target_id = Column(UUID(as_uuid=True))
-    metadata = Column(JSONB)
+    meta_data = Column(JSONB)  # ✅ renamed from 'metadata'
     ip_address = Column(INET)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
