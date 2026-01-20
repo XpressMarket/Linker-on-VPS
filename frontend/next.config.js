@@ -6,9 +6,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-```
-
-**`frontend/.env.local`**
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-recaptcha-site-key-here
