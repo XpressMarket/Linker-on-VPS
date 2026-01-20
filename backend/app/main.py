@@ -7,12 +7,18 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.db.session import engine, Base
+from app.api.v1 import auth
 
 # Import all models so they're registered with Base
 from app.models.user import User
 from app.models.product import Product, ProductImage
 from app.models.verification import VerificationToken
 from app.models.admin_log import AdminLog
+
+
+
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,6 +45,8 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/api/docs"
 )
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 
 # CORS Middleware
 app.add_middleware(

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func
 from typing import List, Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 import uuid
 
@@ -24,13 +24,15 @@ class ProductCreate(BaseModel):
     address: Optional[str] = None
     whatsapp_number: str
     
-    @validator('price')
+    @field_validator('price')
+    @classmethod
     def validate_price(cls, v):
         if v <= 0:
             raise ValueError('Price must be positive')
         return v
     
-    @validator('whatsapp_number')
+    @field_validator('whatsapp_number')
+    @classmethod
     def validate_whatsapp(cls, v):
         # Remove spaces and special chars
         cleaned = ''.join(c for c in v if c.isdigit() or c == '+')
@@ -45,7 +47,8 @@ class ProductUpdate(BaseModel):
     address: Optional[str] = None
     whatsapp_number: Optional[str] = None
     
-    @validator('price')
+    @field_validator('price')
+    @classmethod
     def validate_price(cls, v):
         if v is not None and v <= 0:
             raise ValueError('Price must be positive')

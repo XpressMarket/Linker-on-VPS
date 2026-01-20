@@ -1,10 +1,50 @@
+
 # backend/app/api/v1/auth.py
+
+# from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
+# from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+# from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy import select
+# from datetime import datetime, timedelta
+# from pydantic import BaseModel, EmailStr, field_validator
+# import secrets
+
+# from app.db.session import get_db
+# from app.models.user import User, UserRole
+# from app.models.verification import VerificationToken, VerificationType
+# from app.core.security import (
+#     get_password_hash,
+#     verify_password,
+#     create_access_token,
+#     create_refresh_token,
+#     decode_token,
+#     generate_verification_token
+# )
+# from app.core.config import settings
+
+
+
+
+
+
+
+
+# backend/app/api/v1/auth.py
+
+
+
+
+
+
+
+
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
 import httpx
 
 from app.db.session import get_db
@@ -31,7 +71,8 @@ class RegisterRequest(BaseModel):
     password: str
     captcha_token: str
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters')
