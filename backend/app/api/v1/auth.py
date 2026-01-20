@@ -44,6 +44,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta
+from datetime import datetime, timezone
+
 from pydantic import BaseModel, EmailStr, field_validator
 import httpx
 
@@ -246,7 +248,7 @@ async def verify_email(
     if not verification:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
     
-    if verification.expires_at < datetime.utcnow():
+    if verification.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Token has expired")
     
     # Verify user
