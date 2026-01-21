@@ -12,14 +12,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle2 } from 'lucide-react';
-import ReCAPTCHA from 'react-google-recaptcha';
+// import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
+  //const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('dev-bypass-token');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -48,10 +49,10 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!captchaToken) {
-      setError('Please complete the CAPTCHA');
-      return;
-    }
+    // if (!captchaToken) {
+    //   setError('Please complete the CAPTCHA');
+    //   return;
+    // }
 
     setLoading(true);
 
@@ -161,12 +162,14 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="flex justify-center">
+            <input type="hidden" value="dev-bypass" onChange={(e) => setCaptchaToken(e.target.value)} />
+
+            {/* <div className="flex justify-center">
               <ReCAPTCHA
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
                 onChange={(token) => setCaptchaToken(token || '')}
               />
-            </div>
+            </div> */}
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
