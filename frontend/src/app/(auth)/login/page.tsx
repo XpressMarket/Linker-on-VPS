@@ -21,21 +21,50 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
 
-    try {
-      await login(email, password);
+
+
+
+  //   try {
+  //     await login(email, password);
+  //     router.push('/');
+  //     router.refresh(); // Force navigation to refresh
+  //   } catch (err: any) {
+  //     setError(err.response?.data?.detail || 'Login failed. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+
+  try {
+    await login(email, password);
+    
+    // Check if there's a saved redirect path
+    const redirectPath = localStorage.getItem('redirectAfterLogin');
+    if (redirectPath) {
+      localStorage.removeItem('redirectAfterLogin');
+      router.push(redirectPath);
+    } else {
       router.push('/');
-      router.refresh(); // Force navigation to refresh
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
     }
-  };
+    router.refresh();
+  } catch (err: any) {
+    setError(err.response?.data?.detail || 'Login failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
