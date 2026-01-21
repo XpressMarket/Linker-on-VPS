@@ -1,7 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'your-s3-bucket.s3.amazonaws.com'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8000',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.s3.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.cloudfront.net',
+        pathname: '/**',
+      },
+    ],
   },
 }
 
