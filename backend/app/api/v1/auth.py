@@ -200,7 +200,6 @@ async def register(
         "user_id": str(user.id)
     }
 
-
 @router.post("/login", response_model=TokenResponse)
 async def login(
     request: LoginRequest,
@@ -216,6 +215,13 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
     
+    # ✅ NEW: Check email verification
+    if not user.is_email_verified:
+        raise HTTPException(
+            status_code=403, 
+            detail="Please verify your email before logging in. Check your inbox for the verification link."
+        )
+    
     # Update last login
     user.last_login = datetime.utcnow()
     await db.commit()
@@ -228,6 +234,37 @@ async def login(
         access_token=access_token,
         refresh_token=refresh_token
     )
+
+
+# This older one does not force Email verification before login
+# @router.post("/login", response_model=TokenResponse)
+# async def login(
+#     request: LoginRequest,
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     # Find user
+#     result = await db.execute(select(User).where(User.email == request.email))
+#     user = result.scalar_one_or_none()
+    
+#     if not user or not verify_password(request.password, user.password_hash):
+#         raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+#     if not user.is_active:
+#         raise HTTPException(status_code=403, detail="Account is disabled")
+    
+#     # Update last login
+#     user.last_login = datetime.utcnow()
+#     await db.commit()
+    
+#     # Create tokens
+#     access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
+#     refresh_token = create_refresh_token({"sub": str(user.id)})
+    
+#     return TokenResponse(
+#         access_token=access_token,
+#         refresh_token=refresh_token
+#     )
+
 
 
 @router.post("/verify-email")
