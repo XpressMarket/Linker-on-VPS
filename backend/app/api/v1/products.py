@@ -14,6 +14,8 @@ from app.api.v1.auth import get_current_user, require_verified_email
 from app.services.storage import upload_image, delete_image
 from app.core.config import settings
 
+from sqlalchemy import select, and_, or_, func, text
+
 router = APIRouter()
 
 # Schemas
@@ -334,7 +336,6 @@ async def get_featured_products(db: AsyncSession = Depends(get_db)):
     
     return product_responses
 
-
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(
     product_id: str,
@@ -350,9 +351,15 @@ async def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Increment view count
-    product.view_count += 1
+    # Increment view count using text() for raw SQL
+    await db.execute(
+        text("UPDATE products SET view_count = view_count + 1 WHERE id = :product_id"),
+        {"product_id": str(product.id)}
+    )
     await db.commit()
+    
+    # Refresh product to get updated view count
+    await db.refresh(product)
     
     # Load images
     images_result = await db.execute(
@@ -380,9 +387,106 @@ async def get_product(
             for img in images
         ],
         created_at=product.created_at,
-        updated_at=product.updated_at or product.created_at,  # ✅ Safe fallback
+        updated_at=product.updated_at or product.created_at,
         is_updated=bool(product.updated_at and product.updated_at > product.created_at)
     )
+# @router.get("/{product_id}", response_model=ProductResponse)
+# async def get_product(
+#     product_id: str,
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     result = await db.execute(
+#         select(Product).where(
+#             and_(Product.id == uuid.UUID(product_id), Product.is_active == True)
+#         )
+#     )
+#     product = result.scalar_one_or_none()
+    
+#     if not product:
+#         raise HTTPException(status_code=404, detail="Product not found")
+    
+#     # Increment view count
+#     product.view_count += 1
+#     await db.commit()
+    
+#     # Load images
+#     images_result = await db.execute(
+#         select(ProductImage).where(ProductImage.product_id == product.id)
+#         .order_by(ProductImage.display_order)
+#     )
+#     images = images_result.scalars().all()
+    
+#     return ProductResponse(
+#         id=str(product.id),
+#         user_id=str(product.user_id),
+#         product_name=product.product_name,
+#         brand_name=product.brand_name,
+#         price=float(product.price),
+#         address=product.address,
+#         whatsapp_number=product.whatsapp_number,
+#         is_pinned=product.is_pinned,
+#         view_count=product.view_count,
+#         images=[
+#             ProductImageResponse(
+#                 id=str(img.id),
+#                 image_url=img.image_url,
+#                 display_order=img.display_order
+#             )
+#             for img in images
+#         ],
+#         created_at=product.created_at,
+#         updated_at=product.updated_at or product.created_at,
+#         is_updated=bool(product.updated_at and product.updated_at > product.created_at)
+#     )
+
+# @router.get("/{product_id}", response_model=ProductResponse)
+# async def get_product(
+#     product_id: str,
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     result = await db.execute(
+#         select(Product).where(
+#             and_(Product.id == uuid.UUID(product_id), Product.is_active == True)
+#         )
+#     )
+#     product = result.scalar_one_or_none()
+    
+#     if not product:
+#         raise HTTPException(status_code=404, detail="Product not found")
+    
+#     # Increment view count
+#     product.view_count += 1
+#     await db.commit()
+    
+#     # Load images
+#     images_result = await db.execute(
+#         select(ProductImage).where(ProductImage.product_id == product.id)
+#         .order_by(ProductImage.display_order)
+#     )
+#     images = images_result.scalars().all()
+    
+#     return ProductResponse(
+#         id=str(product.id),
+#         user_id=str(product.user_id),
+#         product_name=product.product_name,
+#         brand_name=product.brand_name,
+#         price=float(product.price),
+#         address=product.address,
+#         whatsapp_number=product.whatsapp_number,
+#         is_pinned=product.is_pinned,
+#         view_count=product.view_count,
+#         images=[
+#             ProductImageResponse(
+#                 id=str(img.id),
+#                 image_url=img.image_url,
+#                 display_order=img.display_order
+#             )
+#             for img in images
+#         ],
+#         created_at=product.created_at,
+#         updated_at=product.updated_at or product.created_at,  # ✅ Safe fallback
+#         is_updated=bool(product.updated_at and product.updated_at > product.created_at)
+#     )
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
