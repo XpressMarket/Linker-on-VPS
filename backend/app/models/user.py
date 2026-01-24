@@ -21,6 +21,7 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_email_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    is_protected = Column(Boolean, default=False)  #  NEW --- Added not to remove protected admin
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True))

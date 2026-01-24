@@ -295,6 +295,7 @@ async def assign_admin_role(
     
     return {"message": f"Admin role assigned to {user.email}"}
 
+# To not remove admin
 
 @router.post("/remove-admin")
 async def remove_admin_role(
@@ -316,6 +317,13 @@ async def remove_admin_role(
             detail="Cannot remove super admin role"
         )
     
+    # ✅ NEW: Check if user is protected
+    if hasattr(user, 'is_protected') and user.is_protected:
+        raise HTTPException(
+            status_code=403,
+            detail="This is a protected admin account and cannot be modified"
+        )
+    
     if user.role != UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="User is not an admin")
     
@@ -332,6 +340,43 @@ async def remove_admin_role(
     )
     
     return {"message": f"Admin role removed from {user.email}"}
+
+# @router.post("/remove-admin")
+# async def remove_admin_role(
+#     request: AssignAdminRequest,
+#     current_user: User = Depends(require_super_admin),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     result = await db.execute(
+#         select(User).where(User.id == uuid.UUID(request.user_id))
+#     )
+#     user = result.scalar_one_or_none()
+    
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+    
+#     if user.role == UserRole.SUPER_ADMIN:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Cannot remove super admin role"
+#         )
+    
+#     if user.role != UserRole.ADMIN:
+#         raise HTTPException(status_code=400, detail="User is not an admin")
+    
+#     user.role = UserRole.USER
+#     await db.commit()
+    
+#     # Log action
+#     await log_admin_action(
+#         db,
+#         current_user.id,
+#         "remove_admin",
+#         "user",
+#         user.id
+#     )
+    
+#     return {"message": f"Admin role removed from {user.email}"}
 
 
 @router.get("/users", response_model=List[dict])

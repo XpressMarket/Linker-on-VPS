@@ -36,6 +36,7 @@ interface User {
   role: string;
   is_email_verified: boolean;
   is_active: boolean;
+  is_protected?: boolean;
   created_at: string;
 }
 
@@ -273,109 +274,131 @@ export default function ManageUsersPage() {
           <CardContent>
             <div className="space-y-3">
               {users.map((user) => {
-                const isCurrentUser = user.id === currentUser?.id;
-                
-                return (
-                  <div
-                    key={user.id}
-                    className={`flex items-center justify-between p-4 border rounded-lg ${
-                      isCurrentUser ? 'bg-blue-50 border-blue-200' : ''
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium">{user.email}</p>
-                        {isCurrentUser && (
-                          <Badge variant="outline" className="bg-blue-100">You</Badge>
-                        )}
-                        {getRoleBadge(user.role)}
-                        {user.is_email_verified ? (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Unverified
-                          </Badge>
-                        )}
-                        {!user.is_active && (
-                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Inactive
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Joined: {new Date(user.created_at).toLocaleDateString()} at {new Date(user.created_at).toLocaleTimeString()}
-                      </p>
-                    </div>
+  const isCurrentUser = user.id === currentUser?.id;
+  
+  return (
+    <div
+      key={user.id}
+      className={`flex items-center justify-between p-4 border rounded-lg ${
+        isCurrentUser ? 'bg-blue-50 border-blue-200' : ''
+      }`}
+    >
+      <div className="flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-medium">{user.email}</p>
+          {isCurrentUser && (
+            <Badge variant="outline" className="bg-blue-100">You</Badge>
+          )}
+          {getRoleBadge(user.role)}
+          
+          {/* ✅ NEW: Protected Badge */}
+          {user.is_protected && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+              <Shield className="h-3 w-3 mr-1" />
+              Protected Root Admin
+            </Badge>
+          )}
+          
+          {user.is_email_verified ? (
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Verified
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Unverified
+            </Badge>
+          )}
+          {!user.is_active && (
+            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+              <XCircle className="h-3 w-3 mr-1" />
+              Inactive
+            </Badge>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Joined: {new Date(user.created_at).toLocaleDateString()} at {new Date(user.created_at).toLocaleTimeString()}
+        </p>
+      </div>
 
-                    <div className="flex gap-2">
-                      {user.role === 'super_admin' && !isCurrentUser && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openConfirmDialog('revoke-super', user.id, user.email)}
-                          disabled={actionLoading === user.id}
-                        >
-                          {actionLoading === user.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <ShieldOff className="h-4 w-4 mr-2" />
-                              Revoke Super Admin
-                            </>
-                          )}
-                        </Button>
-                      )}
+      <div className="flex gap-2">
+        {/* ✅ UPDATED: Super Admin Actions with Protection Check */}
+        {user.role === 'super_admin' && !isCurrentUser && (
+          user.is_protected ? (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              className="cursor-not-allowed"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Protected
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => openConfirmDialog('revoke-super', user.id, user.email)}
+              disabled={actionLoading === user.id}
+            >
+              {actionLoading === user.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <ShieldOff className="h-4 w-4 mr-2" />
+                  Revoke Super Admin
+                </>
+              )}
+            </Button>
+          )
+        )}
 
-                      {user.role === 'admin' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openConfirmDialog('remove', user.id, user.email)}
-                          disabled={actionLoading === user.id}
-                        >
-                          {actionLoading === user.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <ShieldOff className="h-4 w-4 mr-2" />
-                              Remove Admin
-                            </>
-                          )}
-                        </Button>
-                      )}
+        {user.role === 'admin' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openConfirmDialog('remove', user.id, user.email)}
+            disabled={actionLoading === user.id}
+          >
+            {actionLoading === user.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <ShieldOff className="h-4 w-4 mr-2" />
+                Remove Admin
+              </>
+            )}
+          </Button>
+        )}
 
-                      {user.role === 'user' && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => openConfirmDialog('assign', user.id, user.email)}
-                          disabled={actionLoading === user.id}
-                        >
-                          {actionLoading === user.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Shield className="h-4 w-4 mr-2" />
-                              Make Admin
-                            </>
-                          )}
-                        </Button>
-                      )}
+        {user.role === 'user' && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => openConfirmDialog('assign', user.id, user.email)}
+            disabled={actionLoading === user.id}
+          >
+            {actionLoading === user.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Shield className="h-4 w-4 mr-2" />
+                Make Admin
+              </>
+            )}
+          </Button>
+        )}
 
-                      {isCurrentUser && (
-                        <Badge variant="secondary" className="ml-2">
-                          Current User
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        {isCurrentUser && (
+          <Badge variant="secondary" className="ml-2">
+            Current User
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+})}
 
               {users.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">
