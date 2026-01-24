@@ -84,6 +84,109 @@ export default function NewProductPage() {
     });
   };
 
+//   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+//   const files = Array.from(e.target.files || []);
+  
+//   if (images.length + files.length > 10) {
+//     setError('Maximum 10 images allowed');
+//     return;
+//   }
+
+//   setError('');
+//   setLoading(true);
+
+//   const validFiles: File[] = [];
+//   const errors: string[] = [];
+
+//   for (const file of files) {
+//     // Validate MIME type
+//     if (!ALLOWED_TYPES.includes(file.type)) {
+//       errors.push(`${file.name}: Invalid file type. Only JPG, PNG, and WebP are allowed.`);
+//       continue;
+//     }
+
+//     try {
+//       // If file is already small enough, don't compress
+//       if (file.size <= 1024 * 1024) { // 1MB
+//         console.log(`✅ ${file.name} is already small (${(file.size / 1024 / 1024).toFixed(2)}MB), skipping compression`);
+//         validFiles.push(file);
+//         continue;
+//       }
+
+//       // Compression options
+//       const options = {
+//         maxSizeMB: 1,
+//         maxWidthOrHeight: 1920,
+//         useWebWorker: true,
+//         fileType: file.type === 'image/webp' ? 'image/webp' : 'image/jpeg', // Keep WebP as WebP, convert others to JPEG
+//         initialQuality: 0.85,
+//       };
+
+//       console.log(`Compressing ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)...`);
+      
+//       const compressedFile = await imageCompression(file, options);
+      
+//       console.log(`✅ Compressed to ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+//       // Validate after compression
+//       if (compressedFile.size > MAX_SIZE) {
+//         // Try more aggressive compression
+//         console.log('Still too large, trying more aggressive compression...');
+        
+//         const aggressiveOptions = {
+//           maxSizeMB: 0.8,
+//           maxWidthOrHeight: 1280,
+//           useWebWorker: true,
+//           fileType: 'image/jpeg',
+//           initialQuality: 0.7,
+//         };
+        
+//         const recompressed = await imageCompression(file, aggressiveOptions);
+        
+//         if (recompressed.size > MAX_SIZE) {
+//           errors.push(`${file.name}: Image is too large even after compression. Please use a smaller image.`);
+//           continue;
+//         }
+        
+//         validFiles.push(recompressed);
+//       } else {
+//         validFiles.push(compressedFile);
+//       }
+      
+//     } catch (err) {
+//       console.error('Compression error for', file.name, ':', err);
+      
+//       // If compression fails but file is under limit, use original
+//       if (file.size <= MAX_SIZE) {
+//         console.log(`Using original file (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+//         validFiles.push(file);
+//       } else {
+//         errors.push(`${file.name}: Compression failed and file is too large. Please screenshot the image and upload the screenshot or try a different image or reduce size manually.`);
+//       }
+//     }
+//   }
+
+//   if (errors.length > 0) {
+//     setError(errors.join(' | '));
+//   }
+
+//   if (validFiles.length > 0) {
+//     const newImages = [...images, ...validFiles];
+//     setImages(newImages);
+
+//     const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+//     setImagePreviews([...imagePreviews, ...newPreviews]);
+//   }
+
+//   setLoading(false);
+  
+//   // Reset the input
+//   e.target.value = '';
+// };
+
+
+/// I am choosing this option here
+
 const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const files = Array.from(e.target.files || []);
   
@@ -122,7 +225,7 @@ const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
       // Check if still too large after compression
       if (compressedFile.size > MAX_SIZE) {
-        errors.push(`${file.name}: Still too large after compression. Try a smaller image.`);
+        errors.push(`${file.name}:Compression failed and file is too large. Please screenshot the image and upload the screenshot or try a different image or reduce size manually.`);
         continue;
       }
 
