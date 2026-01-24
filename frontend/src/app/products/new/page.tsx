@@ -15,6 +15,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, Upload, Loader2, ImagePlus } from 'lucide-react';
 import Image from 'next/image';
+import imageCompression from 'browser-image-compression';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -83,42 +84,110 @@ export default function NewProductPage() {
     });
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles: File[] = [];
-    const errors: string[] = [];
+const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = Array.from(e.target.files || []);
+  
+  if (images.length + files.length > 10) {
+    setError('Maximum 10 images allowed');
+    return;
+  }
 
-    files.forEach((file) => {
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        errors.push(`${file.name}: Invalid file type. Only JPG, PNG, and WebP are allowed.`);
-        return;
-      }
+  setError('');
+  setLoading(true); // Show loading while compressing
 
-      if (file.size > MAX_SIZE) {
-        errors.push(`${file.name}: File too large. Maximum size is 5MB.`);
-        return;
-      }
+  const validFiles: File[] = [];
+  const errors: string[] = [];
 
-      validFiles.push(file);
-    });
-
-    if (images.length + validFiles.length > 10) {
-      setError('Maximum 10 images allowed');
-      return;
+  for (const file of files) {
+    // Validate MIME type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      errors.push(`${file.name}: Invalid file type. Only JPG, PNG, and WebP are allowed.`);
+      continue;
     }
 
-    if (errors.length > 0) {
-      setError(errors.join(' '));
-      return;
-    }
+    try {
+      // Compress the image
+      const options = {
+        maxSizeMB: 1, // ✅ Maximum file size: 1MB
+        maxWidthOrHeight: 1920, // ✅ Maximum dimension: 1920px
+        useWebWorker: true,
+        fileType: 'image/webp', // ✅ Convert to WebP (better compression)
+      };
 
+      console.log(`Compressing ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)...`);
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      console.log(`✅ Compressed to ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+      // Check if still too large after compression
+      if (compressedFile.size > MAX_SIZE) {
+        errors.push(`${file.name}: Still too large after compression. Try a smaller image.`);
+        continue;
+      }
+
+      validFiles.push(compressedFile);
+    } catch (err) {
+      console.error('Compression error:', err);
+      errors.push(`${file.name}: Failed to compress. Try a different image.`);
+    }
+  }
+
+  if (errors.length > 0) {
+    setError(errors.join(' '));
+  }
+
+  if (validFiles.length > 0) {
     const newImages = [...images, ...validFiles];
     setImages(newImages);
 
     const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
     setImagePreviews([...imagePreviews, ...newPreviews]);
-    setError('');
-  };
+  }
+
+  setLoading(false);
+  
+  // Reset the input so same file can be selected again
+  e.target.value = '';
+};
+
+
+  // const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = Array.from(e.target.files || []);
+  //   const validFiles: File[] = [];
+  //   const errors: string[] = [];
+
+  //   files.forEach((file) => {
+  //     if (!ALLOWED_TYPES.includes(file.type)) {
+  //       errors.push(`${file.name}: Invalid file type. Only JPG, PNG, and WebP are allowed.`);
+  //       return;
+  //     }
+
+  //     if (file.size > MAX_SIZE) {
+  //       errors.push(`${file.name}: File too large. Maximum size is 5MB.`);
+  //       return;
+  //     }
+
+  //     validFiles.push(file);
+  //   });
+
+  //   if (images.length + validFiles.length > 10) {
+  //     setError('Maximum 10 images allowed');
+  //     return;
+  //   }
+
+  //   if (errors.length > 0) {
+  //     setError(errors.join(' '));
+  //     return;
+  //   }
+
+  //   const newImages = [...images, ...validFiles];
+  //   setImages(newImages);
+
+  //   const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+  //   setImagePreviews([...imagePreviews, ...newPreviews]);
+  //   setError('');
+  // };
 
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
@@ -176,8 +245,9 @@ export default function NewProductPage() {
               </Alert>
             )}
 
+
             {/* Image Upload */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Product Images *</Label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                 <input
@@ -236,7 +306,89 @@ export default function NewProductPage() {
                   </div>
                 )}
               </div>
+            </div> */}
+
+            {/* Image Upload */}
+            <div className="space-y-2">
+            <Label>Product Images *</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <input
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              multiple
+              onChange={handleImageSelect}
+              className="hidden"
+              id="image-upload"
+              disabled={loading || images.length >= 10}
+            />
+    
+            {imagePreviews.length === 0 ? (
+              <label
+              htmlFor="image-upload"
+              className={`flex flex-col items-center ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+            {loading ? (
+              <>
+              <Loader2 className="h-12 w-12 text-gray-400 mb-2 animate-spin" />
+              <p className="text-sm text-gray-600">Compressing images...</p>
+              <p className="text-xs text-gray-500 mt-1">
+                This may take a moment for large files
+              </p>
+            </>
+          ) : (
+            <>
+              <ImagePlus className="h-12 w-12 text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600">Click to upload images</p>
+              <p className="text-xs text-gray-500 mt-1">
+                JPG, PNG or WebP (images will be compressed automatically)
+              </p>
+            </>
+          )}
+          </label>
+          ) : (
+          <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            {imagePreviews.map((preview, index) => (
+              <div key={index} className="relative aspect-square">
+                <Image
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  fill
+                  className="object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  aria-label='Remove image'
+                  disabled={loading}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              ))}
+          </div>
+        
+          {images.length < 10 && !loading && (
+            <label
+              htmlFor="image-upload"
+              className="flex items-center justify-center gap-2 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
+            >
+              <Upload className="h-4 w-4" />
+              <span className="text-sm">Add more images ({images.length}/10)</span>
+            </label>
+          )}
+
+          {loading && (
+            <div className="flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Compressing images...
             </div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
 
             {/* Product Name */}
             <div className="space-y-2">
