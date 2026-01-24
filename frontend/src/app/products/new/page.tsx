@@ -274,6 +274,7 @@ export default function NewProductPage() {
                 type="number"
                 step="0.01"
                 min="0"
+                max="9999999999.99"
                 value={formData.price}
                 onChange={handleInputChange}
                 placeholder="e.g., 1500000"
