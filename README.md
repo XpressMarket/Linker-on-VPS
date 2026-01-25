@@ -6,3 +6,10 @@ npx shadcn@latest add label
 npx shadcn@latest add alert
 npx shadcn@latest add badge
 npx shadcn@latest add textarea
+```
+
+
+```
+```
+Afia Abia
+├─ 

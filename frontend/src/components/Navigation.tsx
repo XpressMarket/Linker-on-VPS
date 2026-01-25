@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
+
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, ShoppingBag, Shield } from 'lucide-react';
+import { 
+  User, 
+  LogOut, 
+  ShoppingBag, 
+  Shield,
+  LayoutDashboard
+} from 'lucide-react';
 
 export function Navigation() {
   const router = useRouter();
@@ -43,6 +50,13 @@ export function Navigation() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+
+            <Link href="/dashboard">
+            <Button variant="ghost">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+              </Button>
+              </Link>
               <Link href="/products/new">
                 <Button variant="default">
                   <ShoppingBag className="h-4 w-4 mr-2" />
