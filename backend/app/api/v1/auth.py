@@ -93,6 +93,25 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+# 1. ADD THIS SCHEMA after ResetPasswordRequest (around line 60)
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters')
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain uppercase letter')
+        if not any(c.islower() for c in v):
+            raise ValueError('Password must contain lowercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain digit')
+        return v
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -367,6 +386,39 @@ async def reset_password(
     
     return {"message": "Password reset successfully"}
 
+
+# 2. ADD THIS ENDPOINT after reset_password (around line 380)
+@router.post("/change-password")
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Change password for authenticated user
+    Requires current password verification
+    """
+    # Verify current password
+    if not verify_password(request.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=400, 
+            detail="Current password is incorrect"
+        )
+    
+    # Check if new password is different from current
+    if verify_password(request.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be different from current password"
+        )
+    
+    # Update password
+    current_user.password_hash = get_password_hash(request.new_password)
+    current_user.updated_at = datetime.now(timezone.utc)
+    
+    await db.commit()
+    
+    return {"message": "Password changed successfully"}
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):

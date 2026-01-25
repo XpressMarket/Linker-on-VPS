@@ -1,6 +1,8 @@
+// Documents\Afia Abia\frontend\src\app\dashboard\settings\page.tsx
 'use client';
 
 import { useState } from 'react';
+import { authService } from '@/lib/auth';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,16 +41,26 @@ export default function SettingsPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement change password API
-      // await authService.changePassword(currentPassword, newPassword);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // ✅ FIXED: Call real API instead of simulating
+      await authService.changePassword(currentPassword, newPassword);
       
       setSuccess('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+
+      
+      // TODO: Implement change password API
+      // await authService.changePassword(currentPassword, newPassword);
+      
+      // Simulate API call
+      // await new Promise(resolve => setTimeout(resolve, 1000));
+      
+     // setSuccess('Password changed successfully!');
+      // setCurrentPassword('');
+     // setNewPassword('');
+     //  setConfirmPassword('');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to change password');
     } finally {
