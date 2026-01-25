@@ -6,6 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 import uuid
+from datetime import datetime, timezone
 
 from app.db.session import get_db
 from app.models.product import Product, ProductImage
@@ -511,7 +512,7 @@ async def update_product(
     for field, value in update_data.dict(exclude_unset=True).items():
         setattr(product, field, value)
     
-    product.updated_at = datetime.utcnow()
+    product.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(product)
     

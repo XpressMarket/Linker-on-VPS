@@ -13,6 +13,10 @@ from app.models.user import User, UserRole
 from app.models.admin_log import AdminLog
 from app.api.v1.auth import require_admin, require_super_admin
 from app.services.storage import delete_image
+from datetime import datetime, timezone
+
+
+today = datetime.now(timezone.utc).date()
 
 router = APIRouter()
 
@@ -98,12 +102,12 @@ async def get_dashboard_stats(
     pinned_products = pinned_result.scalar()
     
     # Products created today
-    today = datetime.utcnow().date()
+    # today = datetime.now(timezone.utc) #datetime.utcnow().date()
     products_today_result = await db.execute(
         select(func.count()).select_from(Product).where(
             func.date(Product.created_at) == today
+            )
         )
-    )
     products_today = products_today_result.scalar()
     
     return DashboardStats(

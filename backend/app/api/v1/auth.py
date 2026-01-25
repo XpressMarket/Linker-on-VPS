@@ -32,13 +32,6 @@
 # backend/app/api/v1/auth.py
 
 
-
-
-
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -183,7 +176,9 @@ async def register(
         user_id=user.id,
         token=token,
         type=VerificationType.EMAIL,
-        expires_at=datetime.utcnow() + timedelta(hours=24)
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
+        # expires_at=datetime.utcnow() + timedelta(hours=24)
+        # Reduced time to 
     )
     db.add(verification)
     await db.commit()
@@ -223,7 +218,7 @@ async def login(
         )
     
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     await db.commit()
     
     # Create tokens
@@ -296,7 +291,7 @@ async def verify_email(
         raise HTTPException(status_code=404, detail="User not found")
     
     user.is_email_verified = True
-    verification.used_at = datetime.utcnow()
+    verification.used_at = datetime.now(timezone.utc)
     
     await db.commit()
     
@@ -323,7 +318,8 @@ async def forgot_password(
         user_id=user.id,
         token=token,
         type=VerificationType.PASSWORD_RESET,
-        expires_at=datetime.utcnow() + timedelta(hours=1)
+        # expires_at=datetime.utcnow() + timedelta(hours=1)
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
     )
     db.add(verification)
     await db.commit()
@@ -353,7 +349,8 @@ async def reset_password(
     )
     verification = result.scalar_one_or_none()
     
-    if not verification or verification.expires_at < datetime.utcnow():
+   # ✅ FIX: Use timezone-aware datetime for comparison
+    if not verification or verification.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Invalid or expired token")
     
     # Update password
@@ -364,7 +361,7 @@ async def reset_password(
         raise HTTPException(status_code=404, detail="User not found")
     
     user.password_hash = get_password_hash(request.new_password)
-    verification.used_at = datetime.utcnow()
+    verification.used_at = datetime.now(timezone.utc)  # ✅ FIX: Use timezone-aware datetime
     
     await db.commit()
     
