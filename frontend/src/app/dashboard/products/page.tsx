@@ -1,3 +1,5 @@
+// Afia Abia\frontend\src\app\dashboard\products\page.tsx
+
 
 'use client';
 
