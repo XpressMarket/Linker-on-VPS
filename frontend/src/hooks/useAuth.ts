@@ -41,17 +41,29 @@ export function useAuth() {
     setUser(null);
   }
 
+  // ✅ FIXED: Updated role checks for new RBAC system
+  const isAdmin = user?.role === 'admin' || 
+                  user?.role === 'executive_admin' || 
+                  user?.role === 'platform_owner';
+
+  const isExecutiveAdmin = user?.role === 'executive_admin' || 
+                           user?.role === 'platform_owner';
+
+  const isPlatformOwner = user?.role === 'platform_owner';
+
   return {
     user,
     loading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
-    isSuperAdmin: user?.role === 'super_admin',
+    isAdmin,
+    isExecutiveAdmin,
+    isPlatformOwner,
     login,
     logout,
     reload: loadUser,
   };
 }
+
 
 
 

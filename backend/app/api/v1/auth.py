@@ -152,14 +152,68 @@ async def require_verified_email(current_user: User = Depends(get_current_user))
         raise HTTPException(status_code=403, detail="Email not verified")
     return current_user
 
+# async def require_admin(current_user: User = Depends(require_verified_email)):
+#     if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+#         raise HTTPException(status_code=403, detail="Admin access required")
+#     return current_user
+
+
 async def require_admin(current_user: User = Depends(require_verified_email)):
-    if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+    """
+    Require any admin level access.
+    Includes: admin, executive_admin, platform_owner, super_admin (legacy)
+    """
+    if current_user.role not in [
+        UserRole.ADMIN, 
+        UserRole.EXECUTIVE_ADMIN, 
+        UserRole.PLATFORM_OWNER,
+        UserRole.SUPER_ADMIN  # Backward compatibility
+    ]:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
+
+# async def require_super_admin(current_user: User = Depends(require_verified_email)):
+#     if current_user.role != UserRole.SUPER_ADMIN:
+#         raise HTTPException(status_code=403, detail="Super admin access required")
+#     return current_user
+
 async def require_super_admin(current_user: User = Depends(require_verified_email)):
-    if current_user.role != UserRole.SUPER_ADMIN:
+    """
+    Require super admin or platform owner access.
+    Note: super_admin is legacy, platform_owner is the new root role.
+    """
+    if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.PLATFORM_OWNER]:
         raise HTTPException(status_code=403, detail="Super admin access required")
+    return current_user
+
+
+
+# ✅ NEW: Executive Admin permission check
+async def require_executive_admin(current_user: User = Depends(require_verified_email)):
+    """
+    Require executive admin or platform owner access.
+    Used for managing regular admins.
+    """
+    if current_user.role not in [UserRole.EXECUTIVE_ADMIN, UserRole.PLATFORM_OWNER]:
+        raise HTTPException(
+            status_code=403, 
+            detail="Executive admin access required"
+        )
+    return current_user
+
+
+# ✅ NEW: Platform Owner permission check
+async def require_platform_owner(current_user: User = Depends(require_verified_email)):
+    """
+    Require platform owner (root admin) access.
+    Used for managing executive admins and critical system operations.
+    """
+    if current_user.role != UserRole.PLATFORM_OWNER:
+        raise HTTPException(
+            status_code=403, 
+            detail="Platform owner access required"
+        )
     return current_user
 
 
@@ -184,7 +238,7 @@ async def register(
     user = User(
         email=request.email,
         password_hash=get_password_hash(request.password),
-        role=UserRole.USER
+        role=UserRole.USER # changed from USER to user
     )
     db.add(user)
     await db.flush()
@@ -248,36 +302,6 @@ async def login(
         access_token=access_token,
         refresh_token=refresh_token
     )
-
-
-# This older one does not force Email verification before login
-# @router.post("/login", response_model=TokenResponse)
-# async def login(
-#     request: LoginRequest,
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     # Find user
-#     result = await db.execute(select(User).where(User.email == request.email))
-#     user = result.scalar_one_or_none()
-    
-#     if not user or not verify_password(request.password, user.password_hash):
-#         raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-#     if not user.is_active:
-#         raise HTTPException(status_code=403, detail="Account is disabled")
-    
-#     # Update last login
-#     user.last_login = datetime.utcnow()
-#     await db.commit()
-    
-#     # Create tokens
-#     access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
-#     refresh_token = create_refresh_token({"sub": str(user.id)})
-    
-#     return TokenResponse(
-#         access_token=access_token,
-#         refresh_token=refresh_token
-#     )
 
 
 
