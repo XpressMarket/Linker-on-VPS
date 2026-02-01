@@ -424,24 +424,40 @@ async def get_my_pin_quota(
         pins_remaining=pin_limit - quota.pins_used
     )
 
-
 @router.get("/pin-quotas", response_model=List[PinQuotaInfo])
 async def get_all_pin_quotas(
     current_user: User = Depends(require_executive_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get pin quota information for all admins (Executive+ only)"""
-    # Get all admins
-    result = await db.execute(
-        select(User).where(
+    """
+    Get pin quota information for all admins (Executive+ only).
+    Executive admins see only regular admins.
+    Platform owner sees all admins.
+    """
+    # Build query based on role
+    if current_user.role == UserRole.PLATFORM_OWNER:
+        # Platform owner sees all admins
+        query = select(User).where(
             User.role.in_([
                 UserRole.ADMIN, 
                 UserRole.EXECUTIVE_ADMIN, 
                 UserRole.PLATFORM_OWNER,
                 UserRole.SUPER_ADMIN
             ])
-        ).order_by(User.created_at)
-    )
+        )
+    
+    elif current_user.role == UserRole.EXECUTIVE_ADMIN:
+        # ✅ FIXED: Executive admin sees only regular admins, NOT platform owners or other executives
+        query = select(User).where(
+            User.role == UserRole.ADMIN
+        )
+    
+    else:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    query = query.order_by(User.created_at)
+    
+    result = await db.execute(query)
     admins = result.scalars().all()
     
     quotas = []
@@ -459,6 +475,43 @@ async def get_all_pin_quotas(
         ))
     
     return quotas
+
+
+
+# @router.get("/pin-quotas", response_model=List[PinQuotaInfo])
+# async def get_all_pin_quotas(
+#     current_user: User = Depends(require_executive_admin),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     """Get pin quota information for all admins (Executive+ only)"""
+#     # Get all admins
+#     result = await db.execute(
+#         select(User).where(
+#             User.role.in_([
+#                 UserRole.ADMIN, 
+#                 UserRole.EXECUTIVE_ADMIN, 
+#                 UserRole.PLATFORM_OWNER,
+#                 UserRole.SUPER_ADMIN
+#             ])
+#         ).order_by(User.created_at)
+#     )
+#     admins = result.scalars().all()
+    
+#     quotas = []
+#     for admin in admins:
+#         quota = await get_or_create_pin_quota(db, admin.id)
+#         pin_limit = PIN_LIMITS.get(admin.role, 0)
+        
+#         quotas.append(PinQuotaInfo(
+#             admin_id=str(admin.id),
+#             admin_email=admin.email,
+#             role=admin.role.value,
+#             pins_used=quota.pins_used,
+#             pin_limit=pin_limit,
+#             pins_remaining=pin_limit - quota.pins_used
+#         ))
+    
+#     return quotas
 
 
 # ============================================================================
@@ -775,19 +828,21 @@ async def get_manageable_users(
 ):
     """
     Get list of users this admin can manage.
-    Executive admins see users and admins.
+    Executive admins see users and admins ONLY (not platform owners or other executives).
     Platform owner sees all except protected.
     """
     # Build query based on role
     if current_user.role == UserRole.PLATFORM_OWNER:
-        # Platform owner sees all except protected
+        # Platform owner sees all except protected users
         query = select(User).where(User.is_protected == False)
+    
     elif current_user.role == UserRole.EXECUTIVE_ADMIN:
-        # Executive admin sees users and admins
+        # ✅ FIXED: Executive admin sees ONLY users and admins
+        # They should NOT see platform owners or other executive admins
         query = select(User).where(
             User.role.in_([UserRole.USER, UserRole.ADMIN])
-           # changed from USER to user
         )
+    
     else:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
@@ -807,6 +862,48 @@ async def get_manageable_users(
         )
         for user in users
     ]
+
+
+
+# @router.get("/manageable-users", response_model=List[UserListItem])
+# async def get_manageable_users(
+#     current_user: User = Depends(require_executive_admin),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     """
+#     Get list of users this admin can manage.
+#     Executive admins see users and admins.
+#     Platform owner sees all except protected.
+#     """
+#     # Build query based on role
+#     if current_user.role == UserRole.PLATFORM_OWNER:
+#         # Platform owner sees all except protected
+#         query = select(User).where(User.is_protected == False)
+#     elif current_user.role == UserRole.EXECUTIVE_ADMIN:
+#         # Executive admin sees users and admins
+#         query = select(User).where(
+#             User.role.in_([UserRole.USER, UserRole.ADMIN])
+#            # changed from USER to user
+#         )
+#     else:
+#         raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+#     query = query.order_by(User.created_at.desc())
+    
+#     result = await db.execute(query)
+#     users = result.scalars().all()
+    
+#     return [
+#         UserListItem(
+#             id=str(user.id),
+#             email=user.email,
+#             role=user.role.value,
+#             is_email_verified=user.is_email_verified,
+#             is_protected=user.is_protected,
+#             created_at=user.created_at
+#         )
+#         for user in users
+#     ]
 
 
 
