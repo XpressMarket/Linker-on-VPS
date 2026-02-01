@@ -21,25 +21,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError('');
-  //   setLoading(true);
-
-
-
-
-  //   try {
-  //     await login(email, password);
-  //     router.push('/');
-  //     router.refresh(); // Force navigation to refresh
-  //   } catch (err: any) {
-  //     setError(err.response?.data?.detail || 'Login failed. Please try again.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
