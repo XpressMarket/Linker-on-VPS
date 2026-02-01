@@ -76,6 +76,14 @@ class User(Base):
             return target_role == UserRole.ADMIN
         return False
     
+    def can_manage_role(self, target_role: UserRole) -> bool:
+        """Check if current user can manage a specific role"""
+        if self.role == UserRole.PLATFORM_OWNER:
+            return target_role in [UserRole.ADMIN, UserRole.EXECUTIVE_ADMIN, UserRole.USER]
+        elif self.role == UserRole.EXECUTIVE_ADMIN:
+            return target_role in [UserRole.ADMIN, UserRole.USER]
+        else:
+            return False
     def get_pin_quota(self) -> int:
         """
         Get pin quota based on role.
