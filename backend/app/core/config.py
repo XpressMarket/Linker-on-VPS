@@ -1,7 +1,7 @@
 # backend/app/core/config.py
 from pydantic_settings import BaseSettings
 from typing import List
-
+ 
 class Settings(BaseSettings):
     # App
     ENVIRONMENT: str = "development"
