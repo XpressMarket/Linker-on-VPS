@@ -4,7 +4,7 @@ from typing import List
  
 class Settings(BaseSettings):
     # App
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = "production"
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+    ALLOWED_ORIGINS: List[str] = ["https://marketa-web.vercel.app"]
+    ALLOWED_HOSTS: List[str] = ["https://*.vercel.app", "127.0.0.1"]
     
     # Email
     SMTP_HOST: str
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
     
     # URLs
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "https://marketa-web.vercel.app"
     
     class Config:
         env_file = ".env"
