@@ -55,20 +55,20 @@ app = FastAPI(
 
 
 # CORS Middleware
+# Define allowed origins directly since we're not using the environment variable
+allowed_origins = [
+    "http://localhost:3000",
+    "https://chi-seems-few-hero.trycloudflare.com",
+    "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
+    "https://marketa-web.vercel.app",  # Vercel frontend
+    "https://*.vercel.app",  # Allow all Vercel deployments
+]
+
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_origins=[
-        "http://localhost:3000",
-        "https://chi-seems-few-hero.trycloudflare.com",
-        "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
-        "https://marketa-web.vercel.app",  # Vercel frontend
-        "https://*.vercel.app",  # Allow all Vercel deployments
-    ],
-    #allow_credentials=True,
-    #allow_methods=["*"],
     allow_headers=["*"]
 )
 
