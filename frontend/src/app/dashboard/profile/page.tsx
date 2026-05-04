@@ -59,11 +59,11 @@ export default function ProfilePage() {
               <p className="text-sm text-muted-foreground">Account Type</p>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className={
-                  user.role === 'super_admin' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                  user.role === 'platform_owner' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
                   user.role === 'admin' ? 'bg-blue-500' :
                   'bg-gray-500'
                 }>
-                  {user.role === 'super_admin' ? 'Super Admin' :
+                  {user.role === 'platform_owner' ? 'Platform Owner' :
                    user.role === 'admin' ? 'Admin' :
                    'User'}
                 </Badge>

@@ -42,7 +42,7 @@ interface User {
 
 export default function ManageUsersPage() {
   const router = useRouter();
-  const { user: currentUser, isSuperAdmin, loading: authLoading } = useAuthContext();
+  const { user: currentUser, isPlatformOwner, loading: authLoading } = useAuthContext();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -63,12 +63,12 @@ export default function ManageUsersPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) {
+    if (!authLoading && !isPlatformOwner) {
       router.push('/');
-    } else if (isSuperAdmin) {
+    } else if (isPlatformOwner) {
       loadUsers();
     }
-  }, [authLoading, isSuperAdmin, router]);
+  }, [authLoading, isPlatformOwner, router]);
 
   async function loadUsers() {
     try {
@@ -195,7 +195,7 @@ export default function ManageUsersPage() {
     );
   }
 
-  if (!isSuperAdmin) {
+  if (!isPlatformOwner) {
     return null;
   }
 
@@ -210,7 +210,7 @@ export default function ManageUsersPage() {
             User Management
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage user roles and permissions (Super Admin Only)
+            Manage user roles and permissions (Platform Owner Only)
           </p>
         </div>
 
@@ -323,8 +323,8 @@ export default function ManageUsersPage() {
       </div>
 
       <div className="flex gap-2">
-        {/* ✅ UPDATED: Super Admin Actions with Protection Check */}
-        {user.role === 'super_admin' && !isCurrentUser && (
+        {/* ✅ UPDATED: Platform Owner Actions with Protection Check */}
+        {user.role === 'platform_owner' && !isCurrentUser && (
           user.is_protected ? (
             <Button
               variant="outline"

@@ -16,7 +16,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAdmin, isSuperAdmin, loading } = useAuth();
+  const { isAdmin, isPlatformOwner, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,13 +39,13 @@ export default function AdminLayout({
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-2">
-              {isSuperAdmin ? (
+              {isPlatformOwner ? (
                 <Crown className="h-5 w-5 text-yellow-500" />
               ) : (
                 <Shield className="h-5 w-5 text-blue-500" />
               )}
               <h2 className="font-semibold">
-                {isSuperAdmin ? 'Super Admin Panel' : 'Admin Panel'}
+                {isPlatformOwner ? 'Platform Owner Panel' : 'Admin Panel'}
               </h2>
             </div>
 
@@ -57,7 +57,7 @@ export default function AdminLayout({
                 </Button>
               </Link>
               
-              {isSuperAdmin && (
+              {isPlatformOwner && (
                 <Link href="/admin/users">
                   <Button variant="ghost" size="sm">
                     <Users className="h-4 w-4 mr-2" />
