@@ -8,3 +8,13 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.14"
+  - type: web
+    name: linker-frontend
+    runtime: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://linker-on-vps.onrender.com/api/v1
+      - key: NODE_ENV
+        value: production

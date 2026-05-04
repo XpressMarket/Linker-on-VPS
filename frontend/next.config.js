@@ -24,6 +24,11 @@ const nextConfig = {
         hostname: '**.cloudfront.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'linker-on-vps.onrender.com',
+        pathname: '/uploads/**',
+      },
     ],
   },
 }
