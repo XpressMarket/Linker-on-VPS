@@ -64,6 +64,8 @@ app.add_middleware(
         "http://localhost:3000",
         "https://chi-seems-few-hero.trycloudflare.com",
         "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
+        "https://marketa-web.vercel.app",  # Vercel frontend
+        "https://*.vercel.app",  # Allow all Vercel deployments
     ],
     #allow_credentials=True,
     #allow_methods=["*"],

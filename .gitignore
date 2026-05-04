@@ -7,6 +7,11 @@ dist/
 build/
 Afia-old/
 
+.AUTHENTICATION_FIXES.md
+C:\Users\Melody\Documents\Linker-on-VPS\AUTHENTICATION_FIXES.md
+AUTHENTICATION_FIXES.md
+*AUTHENTICATION_FIXES.md
+
 
 # Environment variables (IMPORTANT - contains passwords!)
 .env
@@ -56,6 +61,7 @@ static/uploads/
 *.swo
 *~
 .DS_Store
+
 
 # Logs
 logs/
