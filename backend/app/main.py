@@ -102,6 +102,23 @@ async def health_check():
     return {"status": "healthy", "database": "connected"}
 
 
+
+
+# Check health on server startup (optional, can be removed if not needed)
+
+@app.get("/health/detail")
+async def health_detail():
+    return {
+        "secret_key_set": bool(settings.SECRET_KEY),
+        "db_url_set": bool(settings.DATABASE_URL),
+        "smtp_set": bool(settings.SMTP_HOST),
+        "aws_set": bool(settings.AWS_ACCESS_KEY_ID),
+        "environment": settings.ENVIRONMENT,
+    }
+
+
+
+
 # Import and activate API routes
 from app.api.v1 import auth, products, admin
 
