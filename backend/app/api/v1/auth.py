@@ -32,6 +32,8 @@
 # backend/app/api/v1/auth.py
 
 
+from urllib import request
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -225,8 +227,16 @@ async def register(
     db: AsyncSession = Depends(get_db),
     req: Request = None
 ):
-    # Verify CAPTCHA
+    # # Verify CAPTCHA
+    # if not await verify_captcha(request.captcha_token, req.client.host):
+    #     raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
+    # Before
     if not await verify_captcha(request.captcha_token, req.client.host):
+        raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
+
+    # After
+    captcha_valid, captcha_score = await verify_captcha(request.captcha_token, req.client.host, action="register")
+    if not captcha_valid:
         raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
     
     # Check if user exists
