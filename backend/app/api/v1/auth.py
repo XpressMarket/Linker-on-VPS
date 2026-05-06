@@ -227,18 +227,11 @@ async def register(
     db: AsyncSession = Depends(get_db),
     req: Request = None
 ):
-    # # Verify CAPTCHA
-    # if not await verify_captcha(request.captcha_token, req.client.host):
-    #     raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
-    # Before
-    if not await verify_captcha(request.captcha_token, req.client.host):
-        raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
-
-    # After
+    # Verify CAPTCHA (now bypassed in captcha.py)
     captcha_valid, captcha_score = await verify_captcha(request.captcha_token, req.client.host, action="register")
     if not captcha_valid:
         raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
-    
+
     # Check if user exists
     result = await db.execute(select(User).where(User.email == request.email))
     if result.scalar_one_or_none():
