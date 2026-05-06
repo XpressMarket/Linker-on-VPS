@@ -56,19 +56,21 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // ✅ Execute reCAPTCHA v3 before submission
-      const captchaToken = await executeRecaptcha('register');
+      // 🔴 TEMPORARY CAPTCHA DISABLED - Use bypass token
+      const captchaToken = 'dev-bypass-token';
+
+      // const captchaToken = await executeRecaptcha('register');
 
       await authService.register({
         email,
         password,
         captcha_token: captchaToken,
       });
-      
+
       setSuccess(true);
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || 'Registration failed. Please try again.';
-      
+
       // Handle specific CAPTCHA errors
       if (errorMessage.includes('CAPTCHA') || errorMessage.includes('suspicious')) {
         setError('Security check failed. Please refresh the page and try again.');
@@ -174,11 +176,11 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* ✅ reCAPTCHA v3 Badge Notice */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {/* 🔴 TEMPORARY CAPTCHA DISABLED - Hidden badge notice */}
+            {/* <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Shield className="h-3 w-3" />
               <span>Protected by reCAPTCHA v3</span>
-            </div>
+            </div> */}
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">

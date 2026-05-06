@@ -12,17 +12,21 @@ from typing import Tuple
 async def verify_captcha(token: str, remote_ip: str, action: str = "submit") -> Tuple[bool, float]:
     """
     Verify CAPTCHA token with Google reCAPTCHA v3
-    
+
     Args:
         token: The reCAPTCHA token from frontend
         remote_ip: User's IP address
         action: The action name (e.g., 'login', 'register')
-    
+
     Returns:
         Tuple[bool, float]: (is_valid, score)
         - is_valid: True if CAPTCHA passed
         - score: reCAPTCHA score (0.0 to 1.0, higher is better)
     """
+    # 🔴 TEMPORARY CAPTCHA DISABLED - Always return True
+    print(f"🤖 CAPTCHA: TEMPORARILY DISABLED (action: {action})")
+    return True, 1.0
+
     # Bypass CAPTCHA in development mode
     if settings.ENVIRONMENT == "development":
         print(f"🤖 CAPTCHA: Bypassed in development mode (action: {action})")
