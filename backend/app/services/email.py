@@ -9,14 +9,20 @@ from app.core.config import settings
 
 async def send_email(to_email: str, subject: str, html_body: str):
     """Send email via SMTP"""
+    # 🔴 Check if email is properly configured
+    if not settings.email_enabled:
+        print(f"⚠️ Email not configured - would have sent to: {to_email}")
+        print(f"📧 Subject: {subject}")
+        return  # Don't raise error, just log and continue
+
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = settings.FROM_EMAIL
     msg['To'] = to_email
-    
+
     html_part = MIMEText(html_body, 'html')
     msg.attach(html_part)
-    
+
     try:
         with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
             server.starttls()
@@ -27,13 +33,23 @@ async def send_email(to_email: str, subject: str, html_body: str):
         print(f"❌ Email failed: {str(e)}")
         # Still log the verification URL for development
         print(f"📧 To: {to_email}, Subject: {subject}")
+        # Don't raise error - let registration continue
 
 async def send_verification_email(to_email: str, token: str):
     """Send email verification link"""
     verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-    
-    print(f"🔗 Verification URL: {verification_url}")  # Keep for debugging
-    
+
+    # 🔴 Always log verification URL for testing
+    print(f"🔗🔗🔗 VERIFICATION URL: {verification_url}")
+    print(f"📧 Email: {to_email}")
+    print(f"🎫 Token: {token}")
+
+    # Check if email is configured
+    if not settings.email_enabled:
+        print(f"⚠️ Email not configured - User can verify using URL above")
+        # Don't send email, but don't fail registration
+        return
+
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -41,10 +57,10 @@ async def send_verification_email(to_email: str, token: str):
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-            .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                        color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
             .content {{ background: #f9fafb; padding: 30px; }}
-            .button {{ 
+            .button {{
                 display: inline-block;
                 padding: 14px 28px;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -90,9 +106,18 @@ async def send_verification_email(to_email: str, token: str):
 async def send_password_reset_email(to_email: str, token: str):
     """Send password reset link"""
     reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
-    
-    print(f"🔗 Password Reset URL: {reset_url}")
-    
+
+    # 🔴 Always log password reset URL for testing
+    print(f"🔗🔗🔗 PASSWORD RESET URL: {reset_url}")
+    print(f"📧 Email: {to_email}")
+    print(f"🎫 Token: {token}")
+
+    # Check if email is configured
+    if not settings.email_enabled:
+        print(f"⚠️ Email not configured - User can reset using URL above")
+        # Don't send email, but don't fail password reset
+        return
+
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -100,10 +125,10 @@ async def send_password_reset_email(to_email: str, token: str):
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-            .header {{ background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); 
+            .header {{ background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
                        color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
             .content {{ background: #f9fafb; padding: 30px; }}
-            .button {{ 
+            .button {{
                 display: inline-block;
                 padding: 14px 28px;
                 background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);

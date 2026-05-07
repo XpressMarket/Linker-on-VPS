@@ -288,11 +288,14 @@ async def login(
     
     # ✅ NEW: Check email verification
     if not user.is_email_verified:
-        raise HTTPException(
-            status_code=403, 
-            detail="Please verify your email before logging in. Check your inbox for the verification link."
-        )
-    
+        # 🔴 TEMPORARY: Allow login without email verification for testing
+        # In production, uncomment the line below:
+        # raise HTTPException(
+        #     status_code=403,
+        #     detail="Please verify your email before logging in. Check your inbox for the verification link."
+        # )
+        print(f"⚠️ User {user.email} logging in without email verification (testing mode)")
+
     # Update last login
     user.last_login = datetime.now(timezone.utc)
     await db.commit()
