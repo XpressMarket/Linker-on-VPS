@@ -6,7 +6,7 @@ from pathlib import Path
 from sqlalchemy import text
 
 from app.core.config import settings
-from app.db.session import engine, Base
+from app.db.session import engine, Base, AsyncSessionLocal
 
 # Import all models (REQUIRED so create_all sees them)
 from app.models.user import User
@@ -55,7 +55,7 @@ app = FastAPI(
 
 
 # CORS Middleware
-# Define allowed origins directly since we're not using the environment variable
+# Define allowed origins directly for reliability
 allowed_origins = [
     "http://localhost:3000",
     "https://chi-seems-few-hero.trycloudflare.com",
@@ -66,20 +66,11 @@ allowed_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins_list,  # use the property
+    allow_origins=allowed_origins,  # Use hardcoded list for reliability
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=allowed_origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"]
-# )
 
 
 
@@ -114,7 +105,71 @@ async def health_detail():
         "smtp_set": bool(settings.SMTP_HOST),
         "aws_set": bool(settings.AWS_ACCESS_KEY_ID),
         "environment": settings.ENVIRONMENT,
+        "allowed_origins": settings.allowed_origins_list,
+        "email_enabled": settings.email_enabled,
+        "aws_enabled": settings.aws_enabled
     }
+
+
+# 🔴 DEBUG: Test endpoint to check configuration
+@app.get("/debug/config")
+async def debug_config():
+    """Debug endpoint to check all configuration"""
+    return {
+        "environment": settings.ENVIRONMENT,
+        "database_url": settings.DATABASE_URL[:20] + "..." if settings.DATABASE_URL else None,
+        "secret_key": settings.SECRET_KEY[:10] + "..." if settings.SECRET_KEY else None,
+        "allowed_origins": settings.allowed_origins_list,
+        "email_enabled": settings.email_enabled,
+        "aws_enabled": settings.aws_enabled,
+        "frontend_url": settings.FRONTEND_URL
+    }
+
+
+# 🔴 DEBUG: Test database connection
+@app.get("/debug/database")
+async def debug_database():
+    """Test database connection"""
+    try:
+        async with engine.begin() as conn:
+            result = await conn.execute(text("SELECT 1"))
+            return {"status": "connected", "result": result.scalar()}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+# 🔴 DEBUG: Test user creation
+@app.get("/debug/test-user")
+async def debug_test_user():
+    """Test user creation"""
+    try:
+        from app.core.security import get_password_hash
+        from app.models.user import User, UserRole
+        from sqlalchemy import select
+
+        async with AsyncSessionLocal() as db:
+            # Check if test user exists
+            result = await db.execute(select(User).where(User.email == "debug@test.com"))
+            existing_user = result.scalar_one_or_none()
+
+            if existing_user:
+                return {"status": "user_exists", "email": existing_user.email, "id": str(existing_user.id)}
+
+            # Create test user
+            test_user = User(
+                email="debug@test.com",
+                password_hash=get_password_hash("TestPass123"),
+                role=UserRole.USER,
+                is_email_verified=True  # Auto-verify for testing
+            )
+            db.add(test_user)
+            await db.commit()
+            await db.refresh(test_user)
+
+            return {"status": "created", "email": test_user.email, "id": str(test_user.id)}
+
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 
